@@ -1,7 +1,10 @@
 from ._model import UNet
+import os
 
-carvana_model = UNet(in_channels=3, num_classes=1)
-carvana_model.load("weights/carvana-unet.pth")
+carvana_model = None
+if os.path.exists("weights/carvana-unet.pth"):
+    carvana_model = UNet(in_channels=3, num_classes=1)
+    carvana_model.load("weights/carvana-unet.pth")
 
 _ModelDatabase = {
     "Carvana": carvana_model
