@@ -2,6 +2,7 @@ from ._parts import DoubleConv, DownSample, UpSample
 import torch as torch
 import torch.nn as nn
 from torchvision import transforms
+import uuid
 
 class UNet(nn.Module):
     def __init__(self, in_channels, num_classes):
@@ -20,10 +21,30 @@ class UNet(nn.Module):
         
         self.out = nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=1)
         self.to(self.device)
+
+        self.epoch = None
+        self.train_loss = None
+        self.val_loss = None
+        self.val_iou = None
+        self.uuid = uuid.uuid4()
     def save(self, filepath):
-        torch.save(self.state_dict(), filepath)
+        checkpoint = {
+            'uuid': str(self.uuid),
+            'model_state_dict': self.state_dict(),
+            "val_loss": self.val_loss,
+            "train_loss": self.train_loss,
+            "val_iou": self.val_iou,
+            "epoch": self.epoch
+        }
+        torch.save(checkpoint, filepath)
     def load(self, filepath):
-        self.load_state_dict(torch.load(filepath, map_location=torch.device(self.device)))
+        checkpoint = torch.load(filepath, map_location=torch.device(self.device))
+        self.uuid = uuid.UUID(checkpoint['uuid'])
+        self.load_state_dict(checkpoint['model_state_dict'])
+        self.val_loss = checkpoint["val_loss"]
+        self.train_loss = checkpoint["train_loss"]
+        self.val_iou = checkpoint["val_iou"]
+        self.epoch = checkpoint["epoch"]
     def predict_image(self, image):
         transform = transforms.Compose([
             transforms.Resize((512, 512)),
