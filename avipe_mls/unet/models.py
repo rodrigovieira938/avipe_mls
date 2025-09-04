@@ -1,8 +1,30 @@
+#Maybe make this more generic and move to the main module
 from ._model import UNet
 from .._checkpoint import CheckpointManager
-import os
 
 checkpoint_manager = CheckpointManager("weights")
+
+class _ModelManager:
+    def __init__(self, name:str):
+        self.name = name
+        self.checkpoints = checkpoint_manager.get_all_filepaths(name)
+        self.latest = checkpoint_manager.get_latest_filepath(name)
+        print(f"Latest model for {name}: {self.latest}")
+    def load_latest(self) -> UNet | None:
+        if self.latest:
+            model = UNet(in_channels=3, num_classes=1)
+            checkpoint = checkpoint_manager.get(self.name, self.latest)
+            if checkpoint:
+                model.load_state_dict(checkpoint.model)
+                return model
+        return None
+    def load(self, name:str) -> UNet | None:
+        model = UNet(in_channels=3, num_classes=1)
+        checkpoint = checkpoint_manager.get(self.name, name)
+        if checkpoint:
+            model.load_state_dict(checkpoint.model)
+            return model
+        return None
 
 def load_model(path:str, in_channels:int=3, num_classes:int=1):
     model = UNet(in_channels=in_channels, num_classes=num_classes)
@@ -13,7 +35,7 @@ def load_model(path:str, in_channels:int=3, num_classes:int=1):
     return None
 
 _ModelDatabase = {
-    "carvana": load_model("carvana")
+    "Carvana": _ModelManager("carvana"),
 }
 
 def GetModel(name):
