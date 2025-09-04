@@ -1,13 +1,19 @@
 from ._model import UNet
+from .._checkpoint import CheckpointManager
 import os
 
-carvana_model = None
-if os.path.exists("weights/carvana-unet.pth"):
-    carvana_model = UNet(in_channels=3, num_classes=1)
-    carvana_model.load("weights/carvana-unet.pth")
+checkpoint_manager = CheckpointManager("weights")
+
+def load_model(path:str, in_channels:int=3, num_classes:int=1):
+    model = UNet(in_channels=in_channels, num_classes=num_classes)
+    checkpoint = checkpoint_manager.get_latest(path)
+    if checkpoint:
+        model.load_state_dict(checkpoint.model)
+        return model
+    return None
 
 _ModelDatabase = {
-    "Carvana": carvana_model
+    "carvana": load_model("carvana")
 }
 
 def GetModel(name):

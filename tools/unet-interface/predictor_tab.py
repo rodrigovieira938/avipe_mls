@@ -15,8 +15,9 @@ def predict(model_name, image:gr.Image):
         img = Image.fromarray((img * 255).astype(np.uint8))
         pred_mask = Image.fromarray((pred_mask * 255).astype(np.uint8))
         return img,pred_mask
+    print(f"Model \"{model_name}\" not found!")
     return None, None
-def preditor_tab():
+def predictor_tab():
     names = [name for name in unet_database.keys()]
     model_chooser = gr.Dropdown(
         choices=names,

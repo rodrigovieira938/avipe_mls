@@ -1,4 +1,6 @@
 import uuid
+
+from .._checkpoint import Checkpoint
 from ._model import UNet
 from ._dataset import Dataset
 from tqdm import tqdm
@@ -11,13 +13,11 @@ EPOCHS = 2
 
 class Trainer:
     class Callback:
-        def on_epoch_end(self, trainer: 'Trainer', logs: dict) -> bool:
+        def on_epoch_end(self, trainer: 'Trainer', checkpoint: Checkpoint) -> bool:
             """
             Return False to stop training early. If True or None, training continues.
             """
             return True
-        def save(self, trainer: 'Trainer', filepath):
-            return
     def __init__(self, model: UNet, learning_rate: float = LEARNING_RATE, batch_size: int = BATCH_SIZE, epochs: int = EPOCHS, optimizer = None, criterion = nn.BCEWithLogitsLoss(), callback: Callback | None = None) -> None:
         self.model = model
         self.learning_rate = learning_rate
@@ -26,6 +26,9 @@ class Trainer:
         self.optimizer = optimizer if optimizer else optim.AdamW(model.parameters(), lr=learning_rate)
         self.criterion = criterion
         self.callback = callback
+        self.vals_iou = []
+        self.vals_loss = []
+        self.train_loss = []
     @staticmethod
     def _compute_iou_components(preds: torch.Tensor, targets: torch.Tensor, threshold: float = 0.5):
         """Return intersection and union (summed) for IoU."""
@@ -62,7 +65,7 @@ class Trainer:
                 self.optimizer.step()
 
             train_loss = train_running_loss / (idx + 1)
-
+            self.train_loss.append(train_loss)
             self.model.eval()
             val_running_loss = 0
             val_intersection = 0.0
@@ -82,35 +85,15 @@ class Trainer:
 
                 val_loss = val_running_loss / (idx + 1)
                 val_iou = (val_intersection + 1e-6) / (val_union + 1e-6)
-            logs = {
-                "train_loss": train_loss,
-                "val_loss": val_loss,
-                "val_iou": val_iou,
-                "epoch": epoch + 1,
-                "model": self.model
-            }
-            self.model.train_loss = train_loss
-            self.model.val_loss = val_loss
-            self.model.val_iou = val_iou
-            self.model.epoch = epoch + 1
+            
+                self.vals_iou.append(val_iou)
+                self.vals_loss.append(val_loss)
             # Generate a new UUID for every epoch
             self.uuid = uuid.uuid4()
+            checkpoint = Checkpoint(self.model, epoch + 1, train_loss, val_loss, val_iou, self.vals_iou, self.vals_loss, self.train_loss)
             if self.callback:
-                if not self.callback.on_epoch_end(self, logs):
+                if not self.callback.on_epoch_end(self, checkpoint):
                     print("Training stopped early by callback.")
                     break
     def save(self, filepath):
-        if self.callback:
-            self.callback.save(self, filepath)
-        else:
-            self.model.save(filepath)
-class PrintLogsCallback(Trainer.Callback):
-    def on_epoch_end(self, logs: dict) -> bool:
-        tqdm.write(f"\n📋 Epoch {logs['epoch']} Logs:")
-        for key, value in logs.items():
-            if key != "epoch":
-                if isinstance(value, float):
-                    tqdm.write(f"  {key}: {value:.4f}")
-                else:
-                    tqdm.write(f"  {key}: {value}")
-        return True
+        self.model.save(filepath)
