@@ -47,3 +47,32 @@ class CheckpointManager:
                 if full_path.exists():
                     return Checkpoint.load(full_path)
         return None
+    def get(self, model_name: str, checkpoint_name: str) -> Checkpoint | None:
+        savepath = Path(f"{self.root_path}/{model_name}")
+        checkpoint_path = savepath / checkpoint_name
+        if checkpoint_path.exists():
+            return Checkpoint.load(checkpoint_path)
+        return None
+    def get_all(self, model_name: str) -> 'list[Checkpoint]':
+        savepath = Path(f"{self.root_path}/{model_name}")
+        checkpoints = []
+        if savepath.exists():
+            for file in savepath.glob(f"{model_name}-*.pth"):
+                checkpoints.append(Checkpoint.load(file))
+        return checkpoints
+    def get_latest_filepath(self, model_name: str) -> str | None:
+        savepath = Path(f"{self.root_path}/{model_name}")
+        latest_link_path = savepath / "latest.link"
+        if latest_link_path.exists():
+            with open(latest_link_path, "r") as latest_link:
+                filepath = latest_link.read().strip()
+                latest_link.close()
+                return str(filepath)
+        return None
+    def get_all_filepaths(self, model_name: str) -> 'list[str]':
+        savepath = Path(f"{self.root_path}/{model_name}")
+        checkpoints = []
+        if savepath.exists():
+            for file in savepath.glob(f"{model_name}-*.pth"):
+                checkpoints.append(str(file.relative_to(savepath)))
+        return checkpoints
