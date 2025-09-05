@@ -1,14 +1,16 @@
 #Maybe make this more generic and move to the main module
 from ._model import UNet
 from .._checkpoint import CheckpointManager
-
+from ._dataset import Dataset
+from . import datasets
 checkpoint_manager = CheckpointManager("weights")
 
 class _ModelManager:
-    def __init__(self, name:str):
+    def __init__(self, name:str, dataset:Dataset):
         self.name = name
         self.checkpoints = checkpoint_manager.get_all_filepaths(name)
         self.latest = checkpoint_manager.get_latest_filepath(name)
+        self.dataset = dataset
         print(f"Latest model for {name}: {self.latest}")
     def load_latest(self) -> UNet | None:
         if self.latest:
@@ -35,7 +37,7 @@ def load_model(path:str, in_channels:int=3, num_classes:int=1):
     return None
 
 _ModelDatabase = {
-    "Carvana": _ModelManager("carvana"),
+    "Carvana": _ModelManager("carvana", datasets.CarvanaDataset()),
 }
 
 def GetModel(name):
