@@ -18,6 +18,7 @@ class Trainer:
             Return False to stop training early. If True or None, training continues.
             """
             return True
+    #TODO: add support to continue training from a checkpoint
     def __init__(self, model: UNet, learning_rate: float = LEARNING_RATE, batch_size: int = BATCH_SIZE, epochs: int = EPOCHS, optimizer = None, criterion = nn.BCEWithLogitsLoss(), callback: Callback | None = None) -> None:
         self.model = model
         self.learning_rate = learning_rate
