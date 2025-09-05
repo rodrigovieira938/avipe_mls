@@ -2,6 +2,7 @@ import gradio as gr
 from avipe_mls import unet
 from PIL import Image
 import numpy as np
+from . import utils
 unet_database = unet.models.GetModels()
 
 def predict(model_name, version, image:gr.Image):
@@ -29,29 +30,17 @@ def predictor_tab():
     model_chooser = gr.Dropdown(
         choices=names,
         label="Select Model",
-        interactive=True
     )
-    def get_versions(model_name):
-        #TODO: make this a tuple of (friendly name, filename)
-        versions = []
-        model_manager = unet_database.get(model_name)
-        if model_manager:
-            for name in model_manager.checkpoints:
-                versions.append((name, name))
-            if model_manager.latest:
-                versions.append(("latest", "latest"))
-        return versions
-    versions = get_versions(model_chooser.value)
+    versions = utils.get_checkpoint_versions(unet_database.get(model_chooser.value))
     version_chooser = gr.Dropdown(
         inputs=[model_chooser],
         #Choose the latest model if it exists, otherwise the first model if it exists else None
         value="latest" if "latest" in [v[0] for v in versions] else (versions[0][0] if versions else None),
         choices=versions,
         label="Select Version",
-        interactive=True
     )
     model_chooser.change(
-        fn=get_versions,
+        fn=lambda name: utils.get_checkpoint_versions(unet_database.get(name)),
         inputs=[model_chooser],
         outputs=[version_chooser]
     )
