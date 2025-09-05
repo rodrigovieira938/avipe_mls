@@ -12,6 +12,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
         {
@@ -22,6 +23,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         }
     ]
