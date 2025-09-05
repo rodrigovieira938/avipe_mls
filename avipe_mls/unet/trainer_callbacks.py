@@ -27,3 +27,11 @@ class CheckpointCallback(Trainer.Callback):
             self.checkpoint_manager.save("carvana", checkpoint)
             tqdm.write(f"Model improved at epoch {checkpoint.epoch}, saving checkpoint.")
         return True  # Continue training
+class CompositeCallback(Trainer.Callback):
+    def __init__(self, callbacks):
+        self.callbacks = callbacks
+    def on_epoch_end(self, trainer, checkpoint: Checkpoint) -> bool:
+        for callback in self.callbacks:
+            if not callback.on_epoch_end(trainer, checkpoint):
+                return False
+        return True
