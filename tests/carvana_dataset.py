@@ -11,29 +11,6 @@ from pathlib import Path
 
 
 checkpoint_manager = CheckpointManager("weights")
-class CheckpointCallback(unet.Trainer.Callback):
-    def __init__(self):
-        self.best_iou = None
-        self.best_val_loss = None
-    def on_epoch_end(self, trainer, checkpoint: Checkpoint) -> bool:
-        val_iou = checkpoint.val_iou
-        val_loss = checkpoint.val_loss
-        save = False
-        if val_iou is not None:
-            if self.best_iou is None or val_iou > self.best_iou:
-                self.best_iou = val_iou
-                save = True
-
-        if val_loss is not None:
-            if self.best_val_loss is None or val_loss < self.best_val_loss:
-                self.best_val_loss = val_loss
-                save = True
-
-        if save:
-            checkpoint_manager.save("carvana", checkpoint)
-            tqdm.write(f"Model improved at epoch {checkpoint.epoch}, saving checkpoint.")
-        return True  # Continue training
-
 dataset_path = kagglehub.competition_download("carvana-image-masking-challenge")
 model = unet.UNet(in_channels=3, num_classes=1)
 if os.path.exists("weights/carvana-unet.pth"):
@@ -44,7 +21,7 @@ else:
     if not os.path.exists("weights"):
         os.makedirs("weights")
     training_model = unet.UNet(in_channels=3, num_classes=1)
-    trainer = unet.Trainer(training_model, epochs=30, callback=CheckpointCallback())
+    trainer = unet.Trainer(training_model, epochs=30, callback=unet.trainer_callbacks.CheckpointCallback(checkpoint_manager))
     transform = transforms.Compose([
                 transforms.Resize((512, 512)),
                 transforms.ToTensor()])
