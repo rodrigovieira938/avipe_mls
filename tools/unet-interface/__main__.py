@@ -1,9 +1,5 @@
 import gradio as gr
-from .content import content
-from .sidebar import sidebar
+from .app import App
 
 if __name__ == "__main__":
-    with content() as main:
-        sbar = sidebar()
-
-    main.launch()
+    App().run()

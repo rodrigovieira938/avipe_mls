@@ -1,1 +1,1 @@
-from .trainer_tab import trainer_tab
+from .trainer import trainer_tab
