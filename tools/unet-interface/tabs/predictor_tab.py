@@ -2,7 +2,7 @@ import gradio as gr
 from avipe_mls import unet
 from PIL import Image
 import numpy as np
-from . import utils
+from .. import utils
 unet_database = unet.models.GetModels()
 
 def predict(model_name, version, image:gr.Image):

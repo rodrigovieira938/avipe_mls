@@ -1,10 +1,9 @@
 import gradio as gr
-from . import predictor_tab
-from . import trainer_tab
+from .tabs import trainer_tab, predictor_tab
 
 tabs = [
-    ("Predictor", predictor_tab.predictor_tab), 
-    ("Trainer", trainer_tab.trainer_tab),  
+    ("Predictor", predictor_tab), 
+    ("Trainer", trainer_tab),  
 ]
 
 def content():

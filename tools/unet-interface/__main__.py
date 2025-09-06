@@ -1,9 +1,9 @@
 import gradio as gr
-from . import sidebar
-from . import content
+from .content import content
+from .sidebar import sidebar
 
 if __name__ == "__main__":
-    with content.content() as main:
-        sbar = sidebar.sidebar()
+    with content() as main:
+        sbar = sidebar()
 
     main.launch()

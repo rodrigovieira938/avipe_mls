@@ -6,7 +6,7 @@ from avipe_mls._checkpoint import Checkpoint, CheckpointManager
 from avipe_mls.unet import models
 from avipe_mls.unet._trainer import Trainer
 from avipe_mls.unet.trainer_callbacks import CheckpointCallback, CompositeCallback
-from . import utils
+from ... import utils
 
 import queue
 class TrainerThreadCallback(Trainer.Callback):

@@ -1,8 +1,8 @@
 import gradio as gr
 from avipe_mls import unet
-from . import utils
+from ... import utils
 from .trainer_thread import TrainerThread
-from . import insights
+from ..common import insights
 
 NOT_TRAINING = 0
 TRAINING = 1
