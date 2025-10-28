@@ -28,4 +28,4 @@ class App:
             self.sidebar = Sidebar()
         self.main = main
     def run(self):
-        self.main.launch()
+        self.main.launch(server_name="0.0.0.0")
