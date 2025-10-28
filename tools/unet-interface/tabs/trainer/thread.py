@@ -39,6 +39,8 @@ class TrainerThread:
             if not model_manager:
                 print(f"Model \"{self._model_name}\" not found!")
                 return # This should not happen
+            if not self._version:
+                self._version = "none"
             start_checkpoint = model_manager.load(self._version)
             if not start_checkpoint:
                 print(f"Version \"{self._version}\" of model \"{self._model_name}\" not found!")
