@@ -6,22 +6,23 @@ from . import datasets
 checkpoint_manager = CheckpointManager("weights")
 
 class _ModelManager:
-    def __init__(self, name:str, dataset:Dataset):
+    def __init__(self, name:str, dataset:Dataset, num_classes=1):
         self.name = name
         self.checkpoints = checkpoint_manager.get_all_filepaths(name)
         self.latest = checkpoint_manager.get_latest_filepath(name)
         self.dataset = dataset
+        self.num_classes = num_classes
         print(f"Latest model for {name}: {self.latest}")
     def load_latest(self) -> UNet | None:
         if self.latest:
-            model = UNet(in_channels=3, num_classes=1)
+            model = UNet(in_channels=3, num_classes=self.num_classes)
             checkpoint = checkpoint_manager.get(self.name, self.latest)
             if checkpoint:
                 model.load_state_dict(checkpoint.model)
                 return model
         return None
     def load(self, name:str) -> UNet | None:
-        model = UNet(in_channels=3, num_classes=1)
+        model = UNet(in_channels=3, num_classes=self.num_classes)
         if(name.upper() == "LATEST"):
             return self.load_latest()
         if(name.upper() == "NONE"):
