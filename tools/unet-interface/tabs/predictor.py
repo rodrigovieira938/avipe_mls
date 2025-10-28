@@ -6,6 +6,7 @@ from .. import utils
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..app import App
+import torch
 
 class Predictor:
     def __init__(self, app: 'App') -> None:
@@ -56,9 +57,9 @@ class Predictor:
         if model_manager and model:
             img, pred_mask = model.predict_image(image)
             img = img.cpu().detach().permute(1, 2, 0).numpy()
-            pred_mask = pred_mask.cpu().detach().permute(1, 2, 0).squeeze(-1).numpy()
-            pred_mask[pred_mask < 0] = 0
-            pred_mask[pred_mask > 0] = 1
+            pred_mask = pred_mask.cpu().detach().squeeze(0)
+            pred_mask = torch.sigmoid(pred_mask)
+            pred_mask = (pred_mask > 0.5).float().numpy()
             img = Image.fromarray((img * 255).astype(np.uint8))
             pred_mask = Image.fromarray((pred_mask * 255).astype(np.uint8))
             return img,pred_mask
