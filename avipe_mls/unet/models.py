@@ -40,7 +40,7 @@ class _ModelManager:
         if(name.upper() == "LATEST"):
             return checkpoint_manager.get_latest(self.name)
         if(name.upper() == "NONE"):
-            return None
+            return Checkpoint(self.load("none"), 0, 0, 0, 0, [], [], []) # type: ignore
         return checkpoint_manager.get(self.name, name)
 
 def load_model(path:str, in_channels:int=3, num_classes:int=1):

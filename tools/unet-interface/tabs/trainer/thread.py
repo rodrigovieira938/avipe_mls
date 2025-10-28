@@ -25,6 +25,21 @@ class TrainerThreadCallback(Trainer.Callback):
         return True  # Continue training
 unet_database = unet.models.GetModels()
 
+
+class BaseEpochCallback(Trainer.Callback):
+    def __init__(self, base_checkpoint : Checkpoint, callback: Trainer.Callback, trainer_thread: 'TrainerThread'):
+        self.callback = callback
+        self.base_checkpoint = base_checkpoint
+    def first(self, trainer):
+        self.callback.on_epoch_end(trainer, self.base_checkpoint)
+    def on_epoch_end(self, trainer, checkpoint: Checkpoint) -> bool:
+        checkpoint.epoch += self.base_checkpoint.epoch
+        checkpoint.vals_iou = self.base_checkpoint.vals_iou + checkpoint.vals_iou
+        checkpoint.vals_loss = self.base_checkpoint.vals_loss + checkpoint.vals_loss
+        checkpoint.train_losses = self.base_checkpoint.train_losses + checkpoint.train_losses
+        return self.callback.on_epoch_end(trainer, checkpoint)
+
+
 class TrainerThread:
     def __init__(self, model_name: str, version: str, epochs: int):
         self._model_name = model_name
@@ -41,20 +56,26 @@ class TrainerThread:
                 return # This should not happen
             if not self._version:
                 self._version = "none"
-            start_checkpoint = model_manager.load(self._version)
+            start_checkpoint = model_manager.get(self._version)
             if not start_checkpoint:
                 print(f"Version \"{self._version}\" of model \"{self._model_name}\" not found!")
                 return # This should not happen
             if start_checkpoint is None:
                 return # This should not happen
-            Trainer(
-                model=start_checkpoint,
-                epochs=self._epochs,
-                callback=CompositeCallback([
+            callbacks = CompositeCallback([
                     CheckpointCallback(self._checkpoint_manager), # First save checkpoints then check for stop and signal updates
                     self._trainer_callback
-                ]),
-            ).train(model_manager.dataset)
+            ])
+            if self._version.upper() != "NONE":
+                callbacks = BaseEpochCallback(start_checkpoint, callbacks, self)
+            trainer = Trainer(
+                model=model_manager.load(self._version),# If model_manager.get(self._version) doesn't return null this doesn't either # type: ignore
+                epochs=self._epochs,
+                callback=callbacks,
+            )
+            if self._version.upper() != "NONE":
+                callbacks.first(trainer) # type: ignore
+            trainer.train(model_manager.dataset)
         self.thread = threading.Thread(target=thread_main)
         self.thread.start()
     def signal_stop(self):
