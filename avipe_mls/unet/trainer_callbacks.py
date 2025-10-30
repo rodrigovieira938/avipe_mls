@@ -5,10 +5,11 @@ from ._trainer import Trainer
 
 
 class CheckpointCallback(Trainer.Callback):
-    def __init__(self, checkpoint_manager: CheckpointManager):
+    def __init__(self, model_name: str, checkpoint_manager: CheckpointManager):
         self.checkpoint_manager = checkpoint_manager
         self.best_iou = None
         self.best_val_loss = None
+        self.model_name = model_name
     def on_epoch_end(self, trainer, checkpoint: Checkpoint) -> bool:
         val_iou = checkpoint.val_iou
         val_loss = checkpoint.val_loss
@@ -24,7 +25,7 @@ class CheckpointCallback(Trainer.Callback):
                 save = True
 
         if save:
-            self.checkpoint_manager.save("carvana", checkpoint)
+            self.checkpoint_manager.save(self.model_name, checkpoint)
             tqdm.write(f"Model improved at epoch {checkpoint.epoch}, saving checkpoint.")
         return True  # Continue training
 class CompositeCallback(Trainer.Callback):

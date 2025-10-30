@@ -63,7 +63,7 @@ class TrainerThread:
             if start_checkpoint is None:
                 return # This should not happen
             callbacks = CompositeCallback([
-                    CheckpointCallback(self._checkpoint_manager), # First save checkpoints then check for stop and signal updates
+                    CheckpointCallback(model_manager.name, self._checkpoint_manager), # First save checkpoints then check for stop and signal updates
                     self._trainer_callback
             ])
             if self._version.upper() != "NONE":
