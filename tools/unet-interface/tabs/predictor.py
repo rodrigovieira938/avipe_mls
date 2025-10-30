@@ -32,7 +32,7 @@ class Predictor:
         # Update the choice of versions if the model changes
         self.model_chooser.change(
             fn=self.update_model_versions_choices,
-            inputs=[self.model_chooser, self.app.models_db],
+            inputs=[self.model_chooser],
             outputs=[self.version_chooser]
         )
         self.interface = gr.Interface(
@@ -43,8 +43,12 @@ class Predictor:
         )
     def update_model_choices(self, models_db):
         return [name for name in models_db.keys()]
-    def update_model_versions_choices(self, model_name, models_db):
-        return utils.get_checkpoint_versions(models_db.get(model_name))
+    def update_model_versions_choices(self, model_name):
+        choices = utils.get_checkpoint_versions(self.app.models_db.value.get(model_name))
+        value = None
+        if ("latest", "latest") in choices:
+            value = "latest"
+        return gr.update(choices=choices, value=value)
     def predict(self, model_name, version, image:gr.Image):
         model_manager = self.app.models_db.value.get(model_name)
         model = None

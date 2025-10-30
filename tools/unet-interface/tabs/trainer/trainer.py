@@ -41,7 +41,7 @@ class Trainer:
                 # Update the choice of versions if the model changes
                 self.model_chooser.change(
                     fn=self.update_model_versions_choices,
-                    inputs=[self.model_chooser, self.app.models_db],
+                    inputs=[self.model_chooser],
                     outputs=[self.start_checkpoint]
                 )
             self.state.change(fn=self.on_change_state,
@@ -74,8 +74,13 @@ class Trainer:
             )
     def update_model_choices(self, models_db):
         return [name for name in models_db.keys()]
-    def update_model_versions_choices(self, model_name, models_db):
-        return utils.get_checkpoint_versions(models_db.get(model_name))
+    def update_model_versions_choices(self, model_name):
+        choices = utils.get_checkpoint_versions(self.app.models_db.value.get(model_name))
+        choices.append(("none","none"))
+        value = "none"
+        if ("latest", "latest") in choices:
+            value = "latest"
+        return gr.update(choices=choices, value=value)
     def on_change_state(self, state_value):
         active = False
         if state_value in (TRAINING, STOPPING):
