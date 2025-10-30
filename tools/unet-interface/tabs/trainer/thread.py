@@ -7,6 +7,7 @@ from avipe_mls.unet import models
 from avipe_mls.unet._trainer import Trainer
 from avipe_mls.unet.trainer_callbacks import CheckpointCallback, CompositeCallback
 from ... import utils
+from torch import nn
 
 import queue
 class TrainerThreadCallback(Trainer.Callback):
@@ -72,6 +73,7 @@ class TrainerThread:
                 model=model_manager.load(self._version),# If model_manager.get(self._version) doesn't return null this doesn't either # type: ignore
                 epochs=self._epochs,
                 callback=callbacks,
+                criterion=nn.BCEWithLogitsLoss() if model_manager.num_classes == 1 else nn.CrossEntropyLoss() # type: ignore
             )
             if self._version.upper() != "NONE":
                 callbacks.first(trainer) # type: ignore

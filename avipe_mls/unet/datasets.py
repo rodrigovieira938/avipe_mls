@@ -36,9 +36,12 @@ class CarvanaDataset(Dataset):
 class GrapevistaVitigeossDataset(Dataset):
     def __init__(self) -> None:
         self.dataset = None
-        self.transform =  transform = transforms.Compose([
+        self.img_transform =  transform = transforms.Compose([
                 transforms.Resize((512, 512)),
                 transforms.ToTensor()])
+        self.mask_transform = transforms.Compose([
+            transforms.Resize((512, 512), interpolation=transforms.InterpolationMode.NEAREST)
+        ])
         self.dataset_path = ""
         self.images = None
     def __concat_parts(self):
@@ -81,7 +84,9 @@ class GrapevistaVitigeossDataset(Dataset):
             assert self.images is not None
         img = Image.open(self.images[index]).convert("RGB")
         mask = Image.open(self.masks[index]).convert("L")
-        img, mask = self.transform(img), self.transform(mask).long().squeeze(0)
+        img = self.img_transform(img)
+        mask = self.mask_transform(mask)
+        mask = torch.as_tensor(np.array(mask), dtype=torch.long)
         return img, mask
     def __len__(self):
         if self.images == None:

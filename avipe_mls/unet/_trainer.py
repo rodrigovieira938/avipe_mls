@@ -33,14 +33,35 @@ class Trainer:
     @staticmethod
     def _compute_iou_components(preds: torch.Tensor, targets: torch.Tensor, threshold: float = 0.5):
         """Return intersection and union (summed) for IoU."""
-        preds = (torch.sigmoid(preds) > threshold).float()
-        targets = (targets > 0.5).float()
+        
+        num_classes = preds.shape[1]
+        if num_classes == 1:
+            preds = (torch.sigmoid(preds) > threshold).float()
+            targets = (targets > 0.5).float()
 
-        intersection = (preds * targets).sum()
-        union = ((preds + targets).clamp(0, 1)).sum()
+            intersection = (preds * targets).sum().item()
+            union = ((preds + targets).clamp(0, 1)).sum().item()
+        else:
+            preds_classes = torch.argmax(torch.softmax(preds, dim=1), dim=1)
 
-        return intersection.item(), union.item()
+            # Ensure targets are same shape (integer labels)
+            if targets.ndim == 4:  # one-hot encoded
+                targets_classes = torch.argmax(targets, dim=1)
+            else:
+                targets_classes = targets
+            
+            intersection = (preds_classes == targets_classes).float().sum().item()
+            union = torch.numel(preds_classes)
+
+        return intersection, union
     def train(self, dataset: Dataset):
+        print(self.criterion)
+        def decode_mask(mask:torch.Tensor):
+            if isinstance(self.criterion, nn.BCEWithLogitsLoss):
+                mask = mask.float().to(self.model.device) 
+            elif isinstance(self.criterion, nn.CrossEntropyLoss):
+                mask = mask.long().to(self.model.device)
+            return mask
         generator = torch.Generator()
         train_dataset, val_dataset = random_split(dataset, [0.8, 0.2], generator=generator)
         train_dataloader = DataLoader(dataset=train_dataset,
@@ -54,7 +75,7 @@ class Trainer:
             train_running_loss = 0
             for idx, img_mask in enumerate(tqdm(train_dataloader)):
                 img = img_mask[0].float().to(self.model.device)
-                mask = img_mask[1].float().to(self.model.device)
+                mask = decode_mask(img_mask[1])
 
                 y_pred = self.model(img)
                 self.optimizer.zero_grad()
@@ -74,8 +95,8 @@ class Trainer:
             with torch.no_grad():
                 for idx, img_mask in enumerate(tqdm(val_dataloader)):
                     img = img_mask[0].float().to(self.model.device)
-                    mask = img_mask[1].float().to(self.model.device)
-                    
+                    mask = decode_mask(img_mask[1])
+
                     y_pred = self.model(img)
                     loss = self.criterion(y_pred, mask)
 
