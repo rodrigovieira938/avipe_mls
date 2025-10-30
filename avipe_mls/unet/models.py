@@ -54,6 +54,7 @@ def load_model(path:str, in_channels:int=3, num_classes:int=1):
 
 _ModelDatabase = {
     "Carvana": _ModelManager("carvana", datasets.CarvanaDataset()),
+    "Grapevista - Vitigeoss": _ModelManager("grapevista-vitigeoss", datasets.GrapevistaVitigeossDataset(), num_classes=3)
 }
 
 def GetModel(name):
