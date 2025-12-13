@@ -1,3 +1,4 @@
+name: "grapevista_segmentation"
 dataset:
   source: # Source of where to download the dataset ("kaglehub", "huggingface")
     type: "huggingface"

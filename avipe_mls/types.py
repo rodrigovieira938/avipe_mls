@@ -49,6 +49,7 @@ class TrainingConfig(BaseConfigModel):
     epochs: int
 
 class FullConfig(BaseConfigModel):
+    name: str = Field(min_length=1)
     dataset: DatasetConfig
     model: List[ModelConfig]
     training: TrainingConfig

@@ -43,3 +43,5 @@ def train_model(config: FullConfig):
 
             avg_loss = epoch_loss / len(train_loader)
             print(f"Epoch {epoch+1}/{epochs} | Train Loss: {avg_loss:.4f}")
+            #TODO: don't save every epoch
+            torch.save(model.state_dict(), f"{config.name}-{model_config.name}_{epoch+1}.pth")
