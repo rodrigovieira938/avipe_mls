@@ -12,7 +12,7 @@ def run_inference(model_config: types.ModelConfig, dataset_config: types.Dataset
     m.eval()
     with torch.no_grad():
         transform =  A.Compose([
-                A.Resize(256, 256),
+                A.Resize(model_config.input_size[0], model_config.input_size[1]),
                 A.pytorch.ToTensorV2()
         ])
         input = None
