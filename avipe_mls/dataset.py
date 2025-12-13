@@ -7,8 +7,7 @@ from torch.utils.data import Dataset
 from PIL import Image, ImageFile
 import numpy as np
 import torch
-from torchvision import transforms
-
+import albumentations as A
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -50,7 +49,7 @@ class DatasetDownloader:
 IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".tiff", ".bmp"]
 
 class SegmentationDataset(Dataset):
-    def __init__(self, images_dir: str | Path, masks_dir: str | Path, transform=None):
+    def __init__(self, images_dir: str | Path, masks_dir: str | Path, transform=A.Compose([A.Resize(256, 256),A.pytorch.ToTensorV2()])):
         self.images_dir = Path(images_dir)
         self.masks_dir = Path(masks_dir)
         self.transform = transform
@@ -65,21 +64,18 @@ class SegmentationDataset(Dataset):
 
         if len(self.images) != len(self.masks):
             raise ValueError("Number of images and masks do not match!")
-        
-        if not self.transform:
-            print("Warning: No transform provided, using default tensor conversion.")
-            self.transform = transforms.Compose([
-                transforms.ToTensor(),          # Convert to tensor and normalize to [0,1]
-            ])
-
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
-        image = Image.open(self.images[idx]).convert("RGB")
-        mask = Image.open(self.masks[idx])
+        image = np.array(Image.open(self.images[idx]).convert("RGB"))
+        mask = np.array(Image.open(self.masks[idx]).convert("L"), dtype=np.int64)
 
-        return self.transform(image), self.transform(mask)
+        if self.transform:
+            augmented = self.transform(image=image, mask=mask)
+            image = augmented["image"]
+            mask = augmented["mask"]
+        return image.float(), mask
 
 def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     path = Path(DatasetDownloader(config).download())
@@ -88,8 +84,4 @@ def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     return SegmentationDataset(
         images_dir=images_dir,
         masks_dir=masks_dir,
-        transform=transforms.Compose([
-            transforms.Resize((256, 256)),  # Resize image to 256x256
-            transforms.ToTensor(),          # Convert to tensor and normalize to [0,1]
-        ])
     )
