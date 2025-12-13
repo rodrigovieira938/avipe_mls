@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
 import torch
+from torchvision import transforms
 
 
 class DatasetDownloader:
@@ -62,6 +63,12 @@ class SegmentationDataset(Dataset):
 
         if len(self.images) != len(self.masks):
             raise ValueError("Number of images and masks do not match!")
+        
+        if not self.transform:
+            print("Warning: No transform provided, using default tensor conversion.")
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),          # Convert to tensor and normalize to [0,1]
+            ])
 
     def __len__(self):
         return len(self.images)
@@ -70,15 +77,7 @@ class SegmentationDataset(Dataset):
         image = Image.open(self.images[idx]).convert("RGB")
         mask = Image.open(self.masks[idx])
 
-        if self.transform:
-            transformed = self.transform(image=np.array(image), mask=np.array(mask))
-            image = transformed["image"]
-            mask = transformed["mask"]
-        else:
-            image = torch.tensor(np.array(image), dtype=torch.float32).permute(2, 0, 1) / 255.0
-            mask = torch.tensor(np.array(mask), dtype=torch.long)
-
-        return image, mask
+        return self.transform(image), self.transform(mask).squeeze(0).long()
 
 def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     path = Path(DatasetDownloader(config).download())
@@ -87,5 +86,8 @@ def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     return SegmentationDataset(
         images_dir=images_dir,
         masks_dir=masks_dir,
-        transform=None
+        transform=transforms.Compose([
+            transforms.Resize((256, 256)),  # Resize image to 256x256
+            transforms.ToTensor(),          # Convert to tensor and normalize to [0,1]
+        ])
     )
