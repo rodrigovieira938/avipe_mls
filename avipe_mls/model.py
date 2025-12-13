@@ -26,7 +26,32 @@ def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
         model = smp.Unet(
             encoder_name=model_config.backbone,
             in_channels=model_config.in_channels,
-            classes=config.dataset.num_classes
+            classes=config.dataset.num_classes,
+            encoder_weights=None
+        )
+        return ModelWrapper(config,model_index, model)
+    elif model_config.name.lower() == "deeplabv3":
+        model = smp.DeepLabV3(
+            encoder_name=model_config.backbone,
+            in_channels=model_config.in_channels,
+            classes=config.dataset.num_classes,
+            encoder_weights=None
+        )
+        return ModelWrapper(config,model_index, model)
+    elif model_config.name.lower() == "deeplabv3+":
+        model = smp.DeepLabV3Plus(
+            encoder_name=model_config.backbone,
+            in_channels=model_config.in_channels,
+            classes=config.dataset.num_classes,
+            encoder_weights=None
+        )
+        return ModelWrapper(config,model_index, model)
+    elif model_config.name.lower() == "fpn":
+        model = smp.FPN(
+            encoder_name=model_config.backbone,
+            in_channels=model_config.in_channels,
+            classes=config.dataset.num_classes,
+            encoder_weights=None
         )
         return ModelWrapper(config,model_index, model)
     else:
