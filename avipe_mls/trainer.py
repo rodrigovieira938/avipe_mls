@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -45,11 +46,14 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
     for idx, _ in enumerate(config.model):
         model = load_model(config, idx)
         model.to(device)
+        Path(weights_path).mkdir(parents=True, exist_ok=True)
+        csv_path = f"{weights_path}/{model.name}.csv"
 
+        with open(csv_path, "w", encoding="utf-8") as f:
+            f.write("epoch,train_loss,val_loss,val_iou\n")
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=config.training.lr)
 
@@ -104,6 +108,7 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
                 f"Train Loss: {avg_train_loss:.4f} | "
                 f"Val Loss: {avg_val_loss:.4f} | Val IoU: {avg_val_iou:.4f}"
             )
+            with open(csv_path, "a", encoding="utf-8") as f:
+                f.write(f"{epoch+1},{avg_train_loss:.4f},{avg_val_loss:.4f},{avg_val_iou:.4f}")
             #TODO: don't save every epoch
-            Path(weights_path).mkdir(parents=True, exist_ok=True)
             model.save(weights_path, epoch+1)
