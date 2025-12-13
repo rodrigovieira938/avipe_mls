@@ -4,11 +4,13 @@ import huggingface_hub
 import importlib.util
 from pathlib import Path
 from torch.utils.data import Dataset
-from PIL import Image
+from PIL import Image, ImageFile
 import numpy as np
 import torch
 from torchvision import transforms
 
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class DatasetDownloader:
     def __init__(self, config: DatasetConfig):
