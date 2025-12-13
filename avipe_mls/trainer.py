@@ -14,8 +14,15 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = create_dataset(config.dataset)
-    train_loader = DataLoader(dataset, batch_size=4, shuffle=True)
-    for idx, model_config in enumerate(config.model):
+
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1.0 - config.training.validation_split, config.training.validation_split])
+
+    batch_size = 4
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+    for idx, _ in enumerate(config.model):
         model = load_model(config, idx)
         model.to(device)
 
@@ -24,10 +31,11 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
 
         epochs = config.training.epochs
         for epoch in range(epochs):
-            epoch_loss = 0.0
+            training_loss = 0.0
             model.train()
-            train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", unit="batch")
-            for images, masks in train_bar:
+            train_bar = tqdm(train_loader, desc=f"Training - Epoch {epoch+1}/{epochs}", unit="batch")
+            #Training loop
+            for batch_idx, (images, masks) in enumerate(train_bar, 1):
                 images, masks = images.to(device), masks.to(device)
                 if isinstance(criterion, torch.nn.CrossEntropyLoss):
                     masks = masks.squeeze(1).long()
@@ -39,10 +47,29 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
                 loss.backward()
                 optimizer.step()
 
-                epoch_loss += loss.item()
-
-            avg_loss = epoch_loss / len(train_loader)
-            print(f"Epoch {epoch+1}/{epochs} | Train Loss: {avg_loss:.4f}")
+                training_loss += loss.item()
+                train_bar.set_postfix({
+                    "train_loss": f"{training_loss/batch_idx:.4f}"
+                })
+            # Validation loop
+            model.eval()
+            val_loss = 0.0
+            with torch.no_grad():
+                val_bar = tqdm(val_loader, desc=f"Validation - Epoch {epoch+1}/{epochs}", unit="batch")
+                for batch_idx, (images, masks) in enumerate(val_bar, 1):
+                    images, masks = images.to(device), masks.to(device)
+                    if isinstance(criterion, torch.nn.CrossEntropyLoss):
+                        masks = masks.squeeze(1).long()
+                    
+                        outputs = model(images)
+                        loss = criterion(outputs, masks)
+                        val_loss += loss.item()
+                        val_bar.set_postfix({
+                            "val_loss": f"{val_loss/batch_idx:.4f}"
+                        })
+            avg_train_loss = training_loss / len(train_loader)
+            avg_val_loss = val_loss / len(val_loader)
+            print(f"Epoch {epoch+1}/{epochs} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
             #TODO: don't save every epoch
             Path(weights_path).mkdir(parents=True, exist_ok=True)
             model.save(weights_path, epoch+1)

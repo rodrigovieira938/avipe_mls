@@ -119,6 +119,7 @@ class ModelConfig(BaseConfigModel):
 class TrainingConfig(BaseConfigModel):
     lr: float
     epochs: int
+    validation_split: float = 0.2
 
 class FullConfig(BaseConfigModel):
     name: str = Field(min_length=1)
