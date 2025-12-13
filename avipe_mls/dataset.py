@@ -95,6 +95,7 @@ def _build_albumentations_transforms(transforms) -> A.Compose:
         if not alb_func:
             raise ValueError(f"Unknown transform type: {t_type}")
         alb_transforms.append(alb_func(t))
+    alb_transforms.append(A.pytorch.ToTensorV2())
     return A.Compose(alb_transforms)
 
 def create_dataset(config: DatasetConfig) -> SegmentationDataset:
