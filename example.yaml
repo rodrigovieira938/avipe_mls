@@ -12,7 +12,6 @@ dataset:
     - HorizontalFlip:
     - VerticalFlip:
     - RandomRotate90:
-    - ShiftScaleRotate:
     - ColorJitter:
   labels: ["class1", "class2", "class3"]
   post_download_scripts: ["scripts/grapevista_prepare.py"]
