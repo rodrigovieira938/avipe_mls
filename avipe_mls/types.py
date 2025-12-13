@@ -17,6 +17,52 @@ class HuggingFaceSource(DatasetSourceConfig):
     repo_type: Literal["dataset"] = "dataset"
 
 DatasetSourceUnion = Union[KaggleSource, HuggingFaceSource]
+
+# Transforms and augmentations
+
+class Crop(BaseModel):
+    type: Literal["random_crop"]
+    width: int
+    height: int
+
+class HorizontalFlip(BaseModel):
+    type: Literal["horizontal_flip"]
+    p: float = 0.5
+
+class VerticalFlip(BaseModel):
+    type: Literal["vertical_flip"]
+    p: float = 0.5
+
+class RandomRotate90(BaseModel):
+    type: Literal["random_rotate_90"]
+    p: float = 0.5
+
+class ShiftScaleRotate(BaseModel):
+    type: Literal["shift_scale_rotate"]
+    shift_limit: float = 0.1
+    scale_limit: float = 0.1
+    rotate_limit: int = 45
+    p: float = 0.5
+
+class ColorJitter(BaseModel):
+    type: Literal["color_jitter"]
+    p: float = 0.5
+    brightness: float = 0.2
+    contrast: float = 0.2
+    saturation: float = 0.2
+    hue: float = 0.2
+
+Transform = Union[Crop, HorizontalFlip, VerticalFlip, RandomRotate90, ShiftScaleRotate, ColorJitter]
+
+TRANSFORM_TYPE_MAP = {
+    "RandomCrop": "random_crop",
+    "HorizontalFlip": "horizontal_flip",
+    "VerticalFlip": "vertical_flip",
+    "RandomRotate90": "random_rotate_90",
+    "ShiftScaleRotate": "shift_scale_rotate",
+    "ColorJitter": "color_jitter",
+}
+
 class DatasetConfig(BaseConfigModel):
     source: DatasetSourceUnion
     num_classes: int
@@ -24,6 +70,32 @@ class DatasetConfig(BaseConfigModel):
     post_download_scripts: List[str] = []
     images_path: str
     masks_path: str
+    transforms: Optional[List[Transform]] = None
+
+    @field_validator("transforms", mode="before")
+    @classmethod
+    def normalize_transforms(cls, v):
+        """Convert - Crop:, - HorizontalFlip:, etc. into {'type': ...} format"""
+        if not v:
+            return v
+
+        normalized = []
+        for item in v:
+            if isinstance(item, dict) and len(item) == 1:
+                key, value = next(iter(item.items()))
+                type_name = TRANSFORM_TYPE_MAP.get(key)
+                if type_name is None:
+                    raise ValueError(f"Unknown transform key: {key}")
+
+                # If value is None, create dict with just type
+                if value is None:
+                    normalized.append({"type": type_name})
+                else:
+                    value["type"] = value.get("type", type_name)
+                    normalized.append(value)
+            else:
+                normalized.append(item)
+        return normalized
 
     @field_validator('labels', mode='after')
     @classmethod

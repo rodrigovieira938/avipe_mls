@@ -77,11 +77,33 @@ class SegmentationDataset(Dataset):
             mask = augmented["mask"]
         return image.float(), mask
 
+TRANSFORM_ALBUMENTATIONS_MAP = {
+    "random_crop": lambda params: A.RandomCrop(height=params.height, width=params.width),
+    "horizontal_flip": lambda params: A.HorizontalFlip(p=params.p),
+    "vertical_flip": lambda params: A.VerticalFlip(p=params.p),
+    "random_rotate_90": lambda params: A.RandomRotate90(p=params.p),
+    "shift_scale_rotate": lambda params: A.ShiftScaleRotate(shift_limit=params.shift_limit, scale_limit=params.scale_limit, rotate_limit=params.rotate_limit, p=params.p),
+    "color_jitter": lambda params: A.ColorJitter(brightness=params.brightness, contrast=params.contrast, saturation=params.saturation, hue=params.hue, p=params.p),
+}
+
+
+def _build_albumentations_transforms(transforms) -> A.Compose:
+    alb_transforms = []
+    for t in transforms:
+        t_type = t.type
+        alb_func = TRANSFORM_ALBUMENTATIONS_MAP.get(t_type)
+        if not alb_func:
+            raise ValueError(f"Unknown transform type: {t_type}")
+        alb_transforms.append(alb_func(t))
+    return A.Compose(alb_transforms)
+
 def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     path = Path(DatasetDownloader(config).download())
     images_dir = Path.joinpath(path, config.images_path)
     masks_dir = Path.joinpath(path, config.masks_path)
+    default_transform = A.Compose([A.Resize(256, 256),A.pytorch.ToTensorV2()])
     return SegmentationDataset(
         images_dir=images_dir,
         masks_dir=masks_dir,
+        transform=_build_albumentations_transforms(config.transforms) if config.transforms else default_transform,
     )

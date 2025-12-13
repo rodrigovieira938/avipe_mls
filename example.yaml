@@ -5,6 +5,15 @@ dataset:
     #competition: "" # Kaggle competition name (if source is "kagglehub")
     repo: "links-ads/grapevista-dataset" # Huggingface repository name (if source is "huggingface")
   num_classes: 3
+  transforms:
+    - RandomCrop:
+        width: 800
+        height: 800
+    - HorizontalFlip:
+    - VerticalFlip:
+    - RandomRotate90:
+    - ShiftScaleRotate:
+    - ColorJitter:
   labels: ["class1", "class2", "class3"]
   post_download_scripts: ["scripts/grapevista_prepare.py"]
   images_path: "data/grapevista/vitigeoss/images"
