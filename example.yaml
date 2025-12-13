@@ -16,4 +16,4 @@ model:
     input_size: [800, 800]
 training:
   lr: 0.001
-  epochs: 50
+  epochs: 10
