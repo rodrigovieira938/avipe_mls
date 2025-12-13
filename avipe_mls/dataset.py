@@ -3,6 +3,11 @@ import kagglehub
 import huggingface_hub
 import importlib.util
 from pathlib import Path
+from torch.utils.data import Dataset
+from PIL import Image
+import numpy as np
+import torch
+
 
 class DatasetDownloader:
     def __init__(self, config: DatasetConfig):
@@ -17,8 +22,8 @@ class DatasetDownloader:
             path = self._download_huggingface()
         else:
             raise ValueError(f"Unknown dataset source type: {source_type}")
-        print("Provided dataset is located at:", path)
         self._run_post_download_scripts(path)
+        return str(path)
     def _download_kaggle(self):
         return kagglehub.download_competition(self.config.source.competition) # type: ignore
 
@@ -38,3 +43,49 @@ class DatasetDownloader:
                 raise AttributeError(f"Script {script_path} does not have a 'run' function")
             print(f"Running post-download script: {script_path}")
             module.run(dataset_path)
+
+IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".tiff", ".bmp"]
+
+class SegmentationDataset(Dataset):
+    def __init__(self, images_dir: str | Path, masks_dir: str | Path, transform=None):
+        self.images_dir = Path(images_dir)
+        self.masks_dir = Path(masks_dir)
+        self.transform = transform
+
+        # Collect all image files with supported extensions
+        self.images = sorted(
+            [p for p in self.images_dir.glob("*") if p.suffix.lower() in IMAGE_EXTENSIONS]
+        )
+        self.masks = sorted(
+            [p for p in self.masks_dir.glob("*") if p.suffix.lower() in IMAGE_EXTENSIONS]
+        )
+
+        if len(self.images) != len(self.masks):
+            raise ValueError("Number of images and masks do not match!")
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        image = Image.open(self.images[idx]).convert("RGB")
+        mask = Image.open(self.masks[idx])
+
+        if self.transform:
+            transformed = self.transform(image=np.array(image), mask=np.array(mask))
+            image = transformed["image"]
+            mask = transformed["mask"]
+        else:
+            image = torch.tensor(np.array(image), dtype=torch.float32).permute(2, 0, 1) / 255.0
+            mask = torch.tensor(np.array(mask), dtype=torch.long)
+
+        return image, mask
+
+def create_dataset(config: DatasetConfig) -> SegmentationDataset:
+    path = Path(DatasetDownloader(config).download())
+    images_dir = Path.joinpath(path, config.images_path)
+    masks_dir = Path.joinpath(path, config.masks_path)
+    return SegmentationDataset(
+        images_dir=images_dir,
+        masks_dir=masks_dir,
+        transform=None
+    )
