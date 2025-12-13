@@ -1,0 +1,14 @@
+dataset:
+  source: # Source of where to download the dataset ("kaglehub", "huggingface")
+    type: "huggingface"
+    #competition: "" # Kaggle competition name (if source is "kagglehub")
+    repo: "links-ads/grapevista-dataset" # Huggingface repository name (if source is "huggingface")
+  num_classes: 3
+  labels: ["class1", "class2", "class3"]
+  #... Normal dataset parameters
+model:
+  - name: "unet"
+    backbone: "resnet34"
+training:
+  lr: 0.001
+  epochs: 50
