@@ -18,7 +18,6 @@ def train_model(config: FullConfig):
     for model_config in config.model:
         model = load_model(model_config, config.dataset)
         model.to(device)
-        model.train()
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=config.training.lr)
@@ -26,6 +25,7 @@ def train_model(config: FullConfig):
         epochs = config.training.epochs
         for epoch in range(epochs):
             epoch_loss = 0.0
+            model.train()
             train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", unit="batch")
             for images, masks in train_bar:
                 images, masks = images.to(device), masks.to(device)
