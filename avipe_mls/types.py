@@ -14,6 +14,7 @@ class KaggleSource(DatasetSourceConfig):
 class HuggingFaceSource(DatasetSourceConfig):
     type: Literal["huggingface"]
     repo: str
+    repo_type: Literal["dataset"] = "dataset"
 
 DatasetSourceUnion = Union[KaggleSource, HuggingFaceSource]
 class DatasetConfig(BaseConfigModel):
