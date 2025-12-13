@@ -29,6 +29,9 @@ def train_model(config: FullConfig):
             train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", unit="batch")
             for images, masks in train_bar:
                 images, masks = images.to(device), masks.to(device)
+                if isinstance(criterion, torch.nn.CrossEntropyLoss):
+                    masks = masks.squeeze(1).long()
+
                 optimizer.zero_grad()
                 outputs = model(images)  # [B, C, H, W]
 

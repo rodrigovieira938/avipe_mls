@@ -77,7 +77,7 @@ class SegmentationDataset(Dataset):
         image = Image.open(self.images[idx]).convert("RGB")
         mask = Image.open(self.masks[idx])
 
-        return self.transform(image), self.transform(mask).squeeze(0).long()
+        return self.transform(image), self.transform(mask)
 
 def create_dataset(config: DatasetConfig) -> SegmentationDataset:
     path = Path(DatasetDownloader(config).download())
