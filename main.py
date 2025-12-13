@@ -2,6 +2,7 @@ import avipe_mls
 
 from PIL import Image
 import numpy as np
+import torch
 
 if __name__ == "__main__":
     try:
