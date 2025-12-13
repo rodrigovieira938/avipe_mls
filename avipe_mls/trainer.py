@@ -9,6 +9,30 @@ from .types import FullConfig
 from .model import load_model
 from .dataset import create_dataset
 
+def _batch_iou(outputs: torch.Tensor, targets: torch.Tensor, num_classes: int, eps: float = 1e-6):
+    """
+    outputs: [B, C, H, W] (logits)
+    targets: [B, H, W] (long)
+    """
+    preds = torch.argmax(outputs, dim=1)  # [B, H, W]
+
+    ious = []
+    for cls in range(num_classes):
+        pred_cls = preds == cls
+        target_cls = targets == cls
+
+        if target_cls.sum() == 0:
+            continue  # skip empty class
+
+        intersection = (pred_cls & target_cls).sum().float()
+        union = (pred_cls | target_cls).sum().float()
+
+        ious.append((intersection + eps) / (union + eps))
+
+    if len(ious) == 0:
+        return torch.tensor(0.0, device=outputs.device)
+
+    return torch.mean(torch.stack(ious))
 
 def train_model(config: FullConfig, weights_path: str = "./weights"):
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
@@ -49,11 +73,12 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
 
                 training_loss += loss.item()
                 train_bar.set_postfix({
-                    "train_loss": f"{training_loss/batch_idx:.4f}"
+                    "loss": f"{training_loss/batch_idx:.4f}"
                 })
             # Validation loop
             model.eval()
             val_loss = 0.0
+            val_iou = 0.0
             with torch.no_grad():
                 val_bar = tqdm(val_loader, desc=f"Validation - Epoch {epoch+1}/{epochs}", unit="batch")
                 for batch_idx, (images, masks) in enumerate(val_bar, 1):
@@ -63,13 +88,22 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
                     
                         outputs = model(images)
                         loss = criterion(outputs, masks)
+                        iou = _batch_iou(outputs, masks, config.dataset.num_classes)
+
                         val_loss += loss.item()
+                        val_iou += iou.item()
                         val_bar.set_postfix({
-                            "val_loss": f"{val_loss/batch_idx:.4f}"
+                            "loss": f"{val_loss/batch_idx:.4f}",
+                            "iou": f"{val_iou / batch_idx:.4f}"
                         })
             avg_train_loss = training_loss / len(train_loader)
             avg_val_loss = val_loss / len(val_loader)
-            print(f"Epoch {epoch+1}/{epochs} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
+            avg_val_iou = val_iou / len(val_loader)
+            print(
+                f"Epoch {epoch+1}/{epochs} | "
+                f"Train Loss: {avg_train_loss:.4f} | "
+                f"Val Loss: {avg_val_loss:.4f} | Val IoU: {avg_val_iou:.4f}"
+            )
             #TODO: don't save every epoch
             Path(weights_path).mkdir(parents=True, exist_ok=True)
             model.save(weights_path, epoch+1)
