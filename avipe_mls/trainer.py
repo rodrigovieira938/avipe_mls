@@ -109,6 +109,6 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
                 f"Val Loss: {avg_val_loss:.4f} | Val IoU: {avg_val_iou:.4f}"
             )
             with open(csv_path, "a", encoding="utf-8") as f:
-                f.write(f"{epoch+1},{avg_train_loss:.4f},{avg_val_loss:.4f},{avg_val_iou:.4f}")
+                f.write(f"{epoch+1},{avg_train_loss:.4f},{avg_val_loss:.4f},{avg_val_iou:.4f}\n")
             #TODO: don't save every epoch
             model.save(weights_path, epoch+1)
