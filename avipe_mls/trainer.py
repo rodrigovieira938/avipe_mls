@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
+from pathlib import Path
 from tqdm import tqdm
 
 from .types import FullConfig
@@ -10,13 +10,13 @@ from .model import load_model
 from .dataset import create_dataset
 
 
-def train_model(config: FullConfig):
+def train_model(config: FullConfig, weights_path: str = "./weights"):
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     dataset = create_dataset(config.dataset)
     train_loader = DataLoader(dataset, batch_size=4, shuffle=True)
-    for model_config in config.model:
-        model = load_model(model_config, config.dataset)
+    for idx, model_config in enumerate(config.model):
+        model = load_model(config, idx)
         model.to(device)
 
         criterion = nn.CrossEntropyLoss()
@@ -44,4 +44,5 @@ def train_model(config: FullConfig):
             avg_loss = epoch_loss / len(train_loader)
             print(f"Epoch {epoch+1}/{epochs} | Train Loss: {avg_loss:.4f}")
             #TODO: don't save every epoch
-            torch.save(model.state_dict(), f"{config.name}-{model_config.name}_{epoch+1}.pth")
+            Path(weights_path).mkdir(parents=True, exist_ok=True)
+            model.save(weights_path, epoch+1)

@@ -4,19 +4,15 @@ import torch
 import albumentations as A
 
 from . import model
-from . import types
 
-def run_inference(model_config: types.ModelConfig, dataset_config: types.DatasetConfig, weights : Mapping[str, Any], input_data) -> torch.Tensor:
-    m = model.load_model(model_config, dataset_config)
-    m.load_state_dict(weights)
-    m.eval()
+def run_inference(model: model.ModelWrapper, input_data) -> torch.Tensor:
+    model.eval()
     with torch.no_grad():
         transform =  A.Compose([
-                A.Resize(model_config.input_size[0], model_config.input_size[1]),
+                A.Resize(model.model_config.input_size[0], model.model_config.input_size[1]),
                 A.pytorch.ToTensorV2()
         ])
-        input = None
-        output = m(transform(image=input_data)["image"].float().unsqueeze(0))
+        output = model(transform(image=input_data)["image"].float().unsqueeze(0))
         pred_mask = torch.argmax(torch.softmax(output, dim=1), dim=1).squeeze(0)
     return pred_mask
 

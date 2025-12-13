@@ -2,7 +2,6 @@ import avipe_mls
 
 from PIL import Image
 import numpy as np
-import torch
 
 if __name__ == "__main__":
     try:
@@ -11,7 +10,8 @@ if __name__ == "__main__":
         dataset = avipe_mls.dataset.create_dataset(config.dataset)
         print("Inference on image:", dataset.images[540])
         img = Image.open(dataset.images[540]).convert("RGB")
-        pred_mask = avipe_mls.inference.run_inference(config.model[0], config.dataset, torch.load("grapevista_segmentation-unet_5.pth"), np.array(img))
+        model = avipe_mls.model.load_model(config, 0).load("basic/grapevista_segmentation-unet_5.pth")
+        pred_mask = avipe_mls.inference.run_inference(model, np.array(img))
         colors = np.array([
             [0, 0, 0],       # Class 0
             [0, 255, 0],     # Class 1
