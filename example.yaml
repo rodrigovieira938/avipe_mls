@@ -6,6 +6,8 @@ dataset:
   num_classes: 3
   labels: ["class1", "class2", "class3"]
   post_download_scripts: ["scripts/grapevista_prepare.py"]
+  images_path: "data/grapevista/vitigeoss/images"
+  masks_path: "data/grapevista/vitigeoss/annotations"
   #... Normal dataset parameters
 model:
   - name: "unet"

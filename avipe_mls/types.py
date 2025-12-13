@@ -22,6 +22,8 @@ class DatasetConfig(BaseConfigModel):
     num_classes: int
     labels: Optional[List[str]] = None
     post_download_scripts: List[str] = []
+    images_path: str
+    masks_path: str
 
     @field_validator('labels', mode='after')
     @classmethod
