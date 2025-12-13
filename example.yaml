@@ -5,6 +5,7 @@ dataset:
     repo: "links-ads/grapevista-dataset" # Huggingface repository name (if source is "huggingface")
   num_classes: 3
   labels: ["class1", "class2", "class3"]
+  post_download_scripts: ["scripts/grapevista_prepare.py"]
   #... Normal dataset parameters
 model:
   - name: "unet"

@@ -21,6 +21,7 @@ class DatasetConfig(BaseConfigModel):
     source: DatasetSourceUnion
     num_classes: int
     labels: Optional[List[str]] = None
+    post_download_scripts: List[str] = []
 
     @field_validator('labels', mode='after')
     @classmethod
