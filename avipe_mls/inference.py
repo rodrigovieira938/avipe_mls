@@ -24,3 +24,5 @@ def create_colored_mask(pred_mask: torch.Tensor, colors: np.typing.NDArray[np.ui
     for class_idx, color in enumerate(colors):
         colored_mask[pred_mask == class_idx] = color
     return colored_mask
+def overlay_mask_on_image(image: np.ndarray, mask: np.ndarray, alpha: float = 0.5):
+    return (image * (1 - alpha) + mask * alpha).astype(np.uint8)
