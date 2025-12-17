@@ -1,3 +1,5 @@
+from . import constants
+
 import torch
 import torch.nn as nn
 
@@ -28,7 +30,7 @@ class CrossEntropyLoss(BaseLoss):
         super().__init__()
 
         if class_weights is not None:
-            weight_tensor = torch.tensor(class_weights, dtype=torch.float32)
+            weight_tensor = torch.tensor(class_weights, dtype=torch.float32).to(constants.TORCH_DEVICE)
         else:
             weight_tensor = None
 

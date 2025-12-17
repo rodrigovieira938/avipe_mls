@@ -52,7 +52,7 @@ def _batch_iou(outputs: torch.Tensor, targets: torch.Tensor, num_classes: int, e
     return torch.mean(torch.stack(ious))
 
 def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH):
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    device: str = constants.TORCH_DEVICE
     dataset = create_dataset(config.dataset)
 
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1.0 - config.training.validation_split, config.training.validation_split])
