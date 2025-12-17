@@ -1,4 +1,4 @@
-name: "grapevista_segmentation_1st_it"
+name: "grapevista_segmentation_2st_it"
 dataset:
   source:
     type: "huggingface"
