@@ -1,9 +1,8 @@
-name: "grapevista_segmentation"
+name: "grapevista_segmentation_1st_it"
 dataset:
-  source: # Source of where to download the dataset ("kaglehub", "huggingface")
+  source:
     type: "huggingface"
-    #competition: "" # Kaggle competition name (if source is "kagglehub")
-    repo: "links-ads/grapevista-dataset" # Huggingface repository name (if source is "huggingface")
+    repo: "links-ads/grapevista-dataset"
   num_classes: 3
   transforms:
     - RandomCrop:
@@ -13,11 +12,10 @@ dataset:
     - VerticalFlip:
     - RandomRotate90:
     - ColorJitter:
-  labels: ["class1", "class2", "class3"]
+  labels: ["bg", "leave", "grape"]
   post_download_scripts: ["scripts/grapevista_prepare.py"]
   images_path: "data/grapevista/vitigeoss/images"
   masks_path: "data/grapevista/vitigeoss/annotations"
-  #... Normal dataset parameters
 model:
   - name: "unet"
     backend: "unet"
@@ -25,4 +23,4 @@ model:
     input_size: [800, 800]
 training:
   lr: 0.001
-  epochs: 10
+  epochs: 22

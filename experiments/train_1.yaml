@@ -1,0 +1,22 @@
+name: "grapevista_segmentation_1st_it"
+dataset:
+  source:
+    type: "huggingface"
+    repo: "links-ads/grapevista-dataset"
+  num_classes: 3
+  transforms:
+    - Resize:
+        width: 800
+        height: 800
+  labels: ["bg", "leave", "grape"]
+  post_download_scripts: ["scripts/grapevista_prepare.py"]
+  images_path: "data/grapevista/vitigeoss/images"
+  masks_path: "data/grapevista/vitigeoss/annotations"
+model:
+  - name: "unet"
+    backend: "unet"
+    backbone: "resnet34"
+    input_size: [800, 800]
+training:
+  lr: 0.001
+  epochs: 22
