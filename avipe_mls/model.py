@@ -6,7 +6,7 @@ class ModelWrapper(torch.nn.Module):
     def __init__(self, config:FullConfig,model_index:int, model: torch.nn.Module):
         super(ModelWrapper, self).__init__()
         self.model = model
-        self.name = config.name + "-" + config.model[model_index].backend
+        self.name = config.model[model_index].name + "-" + config.model[model_index].backend
         self.config = config
         self.model_index = model_index
         self.model_config = config.model[model_index]
