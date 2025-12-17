@@ -116,15 +116,29 @@ class DatasetConfig(BaseConfigModel):
             )
         return labels
 
+class BaseLossConfig(BaseConfigModel):
+    name: str
+    weight: float = 1.0
+    pass
+class CrossEntropyConfig(BaseLossConfig):
+    name: Literal["cross_entropy"]
+    class_weights: Optional[list[float]] = None
+class ComposeLossConfig(BaseLossConfig):
+    name: Literal["compose"]
+    losses: List["LossConfig"]
+
+LossConfig = Union[ComposeLossConfig, CrossEntropyConfig]
 class TrainingConfig(BaseConfigModel):
     lr: float
     epochs: int
     validation_split: float = 0.2
+    loss: LossConfig
 
 class ModelTrainingConfig(BaseConfigModel):
     lr: Optional[float] = None
     epochs: Optional[int] = None
     validation_split: Optional[float] = None
+    loss: LossConfig
 
 class ModelConfig(BaseConfigModel):
     name: str = Field(min_length=1)

@@ -6,11 +6,25 @@ from torch.utils.data import DataLoader
 from pathlib import Path
 from tqdm import tqdm
 
-from .types import FullConfig
+from .types import FullConfig, LossConfig, ComposeLossConfig, CrossEntropyConfig
 from .model import load_model
 from .dataset import create_dataset
 from . import constants
 from . import utils
+from . import _loss as loss
+
+def _build_loss(loss_cfg: LossConfig) -> loss.BaseLoss:
+    if isinstance(loss_cfg, ComposeLossConfig):
+        return loss.ComposeLoss(
+            children=[_build_loss(child) for child in loss_cfg.losses],
+            weight=loss_cfg.weight
+        )
+    if isinstance(loss_cfg, CrossEntropyConfig):
+        return loss.CrossEntropyLoss(
+            class_weights=loss_cfg.class_weights,
+            weight=loss_cfg.weight
+        )
+    raise TypeError(f"Unsupported LossConfig type: {type(loss_cfg)}")
 
 def _batch_iou(outputs: torch.Tensor, targets: torch.Tensor, num_classes: int, eps: float = 1e-6):
     """
@@ -56,7 +70,7 @@ def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH
 
         with open(csv_path, "w", encoding="utf-8") as f:
             f.write("epoch,train_loss,val_loss,val_iou\n")
-        criterion = nn.CrossEntropyLoss()
+        criterion = _build_loss(training_config.loss)
         optimizer = optim.Adam(model.parameters(), lr=training_config.lr)
 
         epochs = training_config.epochs
@@ -67,8 +81,6 @@ def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH
             #Training loop
             for batch_idx, (images, masks) in enumerate(train_bar, 1):
                 images, masks = images.to(device), masks.to(device)
-                if isinstance(criterion, torch.nn.CrossEntropyLoss):
-                    masks = masks.squeeze(1).long()
 
                 optimizer.zero_grad()
                 outputs = model(images)  # [B, C, H, W]
@@ -89,19 +101,16 @@ def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH
                 val_bar = tqdm(val_loader, desc=f"Validation - Epoch {epoch+1}/{epochs}", unit="batch")
                 for batch_idx, (images, masks) in enumerate(val_bar, 1):
                     images, masks = images.to(device), masks.to(device)
-                    if isinstance(criterion, torch.nn.CrossEntropyLoss):
-                        masks = masks.squeeze(1).long()
-                    
-                        outputs = model(images)
-                        loss = criterion(outputs, masks)
-                        iou = _batch_iou(outputs, masks, config.dataset.num_classes)
+                    outputs = model(images)
+                    loss = criterion(outputs, masks)
+                    iou = _batch_iou(outputs, masks, config.dataset.num_classes)
 
-                        val_loss += loss.item()
-                        val_iou += iou.item()
-                        val_bar.set_postfix({
-                            "loss": f"{val_loss/batch_idx:.4f}",
-                            "iou": f"{val_iou / batch_idx:.4f}"
-                        })
+                    val_loss += loss.item()
+                    val_iou += iou.item()
+                    val_bar.set_postfix({
+                        "loss": f"{val_loss/batch_idx:.4f}",
+                        "iou": f"{val_iou / batch_idx:.4f}"
+                    })
             avg_train_loss = training_loss / len(train_loader)
             avg_val_loss = val_loss / len(val_loader)
             avg_val_iou = val_iou / len(val_loader)

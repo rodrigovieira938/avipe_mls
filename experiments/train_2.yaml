@@ -36,3 +36,5 @@ model:
 training:
   lr: 0.001
   epochs: 22
+  loss:
+    name: cross_entropy
