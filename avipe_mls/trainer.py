@@ -47,6 +47,7 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     for idx, _ in enumerate(config.model):
+        training_config = config.get_training_for_model(idx)
         model = load_model(config, idx)
         model.to(device)
         Path(weights_path).mkdir(parents=True, exist_ok=True)
