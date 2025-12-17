@@ -7,6 +7,7 @@ from .. import config
 from .. import model
 from .. import inference as _inference
 from .. import constants
+from .. import utils
 
 def inference(input_file, model_indexes, epoch_numbers, full_config:config.FullConfig, root_path=constants.DEFAULT_ROOT_PATH):
     masks = []
@@ -15,7 +16,8 @@ def inference(input_file, model_indexes, epoch_numbers, full_config:config.FullC
     img_np = np.array(img)
     for idx, model_idx in enumerate(model_indexes):
         epoch = epoch_numbers[idx]
-        m = model.load_model(full_config, model_idx).load(f"{root_path}/{full_config.name}-{full_config.model[model_idx].name}_{epoch}.pth")
+        model_path = utils._get_pth_path(full_config, model_idx, epoch, root_path)
+        m = model.load_model(full_config, model_idx).load(model_path)
         pred_mask = _inference.run_inference(m, img_np)
         colors = np.array([
             [0, 0, 0],       # Class 0
@@ -79,7 +81,8 @@ if __name__ == "__main__":
         for idx in model_indexes:
             found = False
             for epoch in range(full_config.training.epochs,0, -1):
-                path = Path(f"{args.weights_path}/{full_config.name}-{full_config.model[idx].name}_{epoch}.pth")
+                model_path = utils._get_pth_path(full_config, idx, epoch, args.root_path)
+                path = Path(model_path)
                 if path.exists() and path.is_file():
                     epoch_numbers.append(idx)
                     found = True
@@ -88,7 +91,8 @@ if __name__ == "__main__":
                 exit(0)
     else:
         for idx in model_indexes:
-            path = Path(f"{args.weights_path}/{full_config.name}-{full_config.model[idx].name}_{args.epoch}.pth")
+            model_path = utils._get_pth_path(full_config, idx, args.epoch, args.root_path)
+            path = Path(model_path)
             if not path.exists() or not path.is_file():
                 print(f"Didn't find any weights for epoch {args.epoch} for {full_config.model[idx].name}")
                 exit(1)
