@@ -6,15 +6,16 @@ import numpy as np
 from .. import config
 from .. import model
 from .. import inference as _inference
+from .. import constants
 
-def inference(input_file, model_indexes, epoch_numbers, full_config:config.FullConfig, weights_path="weights"):
+def inference(input_file, model_indexes, epoch_numbers, full_config:config.FullConfig, root_path=constants.DEFAULT_ROOT_PATH):
     masks = []
 
     img = Image.open(input_file).convert("RGB")
     img_np = np.array(img)
     for idx, model_idx in enumerate(model_indexes):
         epoch = epoch_numbers[idx]
-        m = model.load_model(full_config, model_idx).load(f"{weights_path}/{full_config.name}-{full_config.model[model_idx].name}_{epoch}.pth")
+        m = model.load_model(full_config, model_idx).load(f"{root_path}/{full_config.name}-{full_config.model[model_idx].name}_{epoch}.pth")
         pred_mask = _inference.run_inference(m, img_np)
         colors = np.array([
             [0, 0, 0],       # Class 0
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument('filename', type=image_file, help="Path to the input file for inference")
     parser.add_argument("-c", '--config', help="Path to config.yaml file", required=True)
     parser.add_argument("-m", "--models", help="List of models to inference with separated by ','. Default: all", default="<all>")
-    parser.add_argument("-w", "--weights-path", help="Path to model weights directory", default="weights")
+    parser.add_argument("-r", "--root-path", help="Root path to experiment weights directory", default=constants.DEFAULT_ROOT_PATH)
     parser.add_argument("-e", "--epoch", type=int, help="Which epoch of the models to run", default="<recent>")
     parser.add_argument("-o", "--output-path", help="path of outputed images", default="output")
     args = parser.parse_args()
@@ -93,7 +94,7 @@ if __name__ == "__main__":
                 exit(1)
             epoch_numbers.append(args.epoch)
     
-    masks = inference(args.filename, model_indexes, epoch_numbers, full_config, weights_path=args.weights_path)
+    masks = inference(args.filename, model_indexes, epoch_numbers, full_config, root_path=args.weights_path)
     for idx, mask in enumerate(masks):
         img = Image.fromarray(mask)
         Path(args.output_path).mkdir(exist_ok=True)

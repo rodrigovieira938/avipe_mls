@@ -1,6 +1,8 @@
 import torch
-from avipe_mls.types import FullConfig
 import segmentation_models_pytorch as smp
+
+from .types import FullConfig
+from . import utils
 
 class ModelWrapper(torch.nn.Module):
     def __init__(self, config:FullConfig,model_index:int, model: torch.nn.Module):
@@ -16,9 +18,8 @@ class ModelWrapper(torch.nn.Module):
     def load(self, path: str):
         self.model.load_state_dict(torch.load(path))
         return self
-    def save(self, path: str, epoch: int | None = None):
-        filepath = f"{path}/{self.name}" + (f"_{epoch}.pth" if epoch is not None else ".pth")
-        torch.save(self.model.state_dict(), filepath)
+    def save(self, path: str):
+        torch.save(self.model.state_dict(), path)
 
 def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
     model_config = config.model[model_index]

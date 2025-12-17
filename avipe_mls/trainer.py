@@ -9,6 +9,8 @@ from tqdm import tqdm
 from .types import FullConfig
 from .model import load_model
 from .dataset import create_dataset
+from . import constants
+from . import utils
 
 def _batch_iou(outputs: torch.Tensor, targets: torch.Tensor, num_classes: int, eps: float = 1e-6):
     """
@@ -35,9 +37,8 @@ def _batch_iou(outputs: torch.Tensor, targets: torch.Tensor, num_classes: int, e
 
     return torch.mean(torch.stack(ious))
 
-def train_model(config: FullConfig, weights_path: str = "./weights"):
+def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH):
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
-
     dataset = create_dataset(config.dataset)
 
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1.0 - config.training.validation_split, config.training.validation_split])
@@ -50,8 +51,8 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
         training_config = config.get_training_for_model(idx)
         model = load_model(config, idx)
         model.to(device)
-        Path(weights_path).mkdir(parents=True, exist_ok=True)
-        csv_path = f"{weights_path}/{model.name}.csv"
+        csv_path = Path(utils._get_csv_path(config, idx, root_path))
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(csv_path, "w", encoding="utf-8") as f:
             f.write("epoch,train_loss,val_loss,val_iou\n")
@@ -112,4 +113,6 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
             with open(csv_path, "a", encoding="utf-8") as f:
                 f.write(f"{epoch+1},{avg_train_loss:.4f},{avg_val_loss:.4f},{avg_val_iou:.4f}\n")
             #TODO: don't save every epoch
-            model.save(weights_path, epoch+1)
+            save_path =  Path(utils._get_pth_path(config, idx, epoch+1))
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            model.save(str(save_path))
