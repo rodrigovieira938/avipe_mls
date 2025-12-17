@@ -55,9 +55,9 @@ def train_model(config: FullConfig, weights_path: str = "./weights"):
         with open(csv_path, "w", encoding="utf-8") as f:
             f.write("epoch,train_loss,val_loss,val_iou\n")
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=config.training.lr)
+        optimizer = optim.Adam(model.parameters(), lr=training_config.lr)
 
-        epochs = config.training.epochs
+        epochs = training_config.epochs
         for epoch in range(epochs):
             training_loss = 0.0
             model.train()

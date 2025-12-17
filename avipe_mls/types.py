@@ -110,19 +110,41 @@ class DatasetConfig(BaseConfigModel):
             )
         return labels
 
+class TrainingConfig(BaseConfigModel):
+    lr: float
+    epochs: int
+    validation_split: float = 0.2
+
+class ModelTrainingConfig(BaseConfigModel):
+    lr: Optional[float] = None
+    epochs: Optional[int] = None
+    validation_split: Optional[float] = None
+
 class ModelConfig(BaseConfigModel):
     name: str = Field(min_length=1)
     backbone: str = Field(min_length=1)
     in_channels: int = 3
     input_size: List[int] = Field(max_length=2, min_length=2)
-
-class TrainingConfig(BaseConfigModel):
-    lr: float
-    epochs: int
-    validation_split: float = 0.2
+    training: Optional[ModelTrainingConfig] = None
 
 class FullConfig(BaseConfigModel):
     name: str = Field(min_length=1)
     dataset: DatasetConfig
     model: List[ModelConfig]
     training: TrainingConfig
+
+    def get_training_for_model(self, model_index: int) -> TrainingConfig:
+        """
+        Returns a TrainingConfig for the given model, 
+        merging the global config with model-specific overrides.
+        """
+        model = self.model[model_index]
+
+        if model.training is None:
+            return self.training  # no overrides, return global
+
+        # Merge field by field
+        merged_data = self.training.model_dump()
+        override_data = model.training.model_dump(exclude_unset=True)
+        merged_data.update(override_data)
+        return TrainingConfig(**merged_data)
