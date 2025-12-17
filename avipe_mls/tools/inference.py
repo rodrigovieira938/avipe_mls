@@ -49,7 +49,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('filename', type=image_file, help="Path to the input file for inference")
     parser.add_argument("-c", '--config', help="Path to config.yaml file", required=True)
-    parser.add_argument("-m", "--models", help="List of models to inference with separated by ','. Default: all", default="<all>")
+    parser.add_argument("-m", "--models", help="List of models to inference with separated by ','. Default: all", default="all")
     parser.add_argument("-r", "--root-path", help="Root path to experiment weights directory", default=constants.DEFAULT_ROOT_PATH)
     parser.add_argument("-e", "--epoch", type=int, help="Which epoch of the models to run", default="<recent>")
     parser.add_argument("-o", "--output-path", help="path of outputed images", default="output")
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     model_indexes = []
     epoch_numbers = []
     
-    if(args.models == "<all>"):
+    if(args.models == "all"):
         for i in range(len(full_config.model)):
             model_indexes.append(i)
     else:
@@ -75,7 +75,7 @@ if __name__ == "__main__":
             model_indexes.append(idx)
     
     if(args.epoch == "<recent>"):
-        if not Path(args.weights_path).exists():
+        if not Path(args.root_path).exists():
             print("Didn't find any weights for the models!")
             exit(0)
         for idx in model_indexes:
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 exit(1)
             epoch_numbers.append(args.epoch)
     
-    masks = inference(args.filename, model_indexes, epoch_numbers, full_config, root_path=args.weights_path)
+    masks = inference(args.filename, model_indexes, epoch_numbers, full_config, root_path=args.root_path)
     for idx, mask in enumerate(masks):
         img = Image.fromarray(mask)
         Path(args.output_path).mkdir(exist_ok=True)
