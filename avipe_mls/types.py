@@ -20,6 +20,11 @@ DatasetSourceUnion = Union[KaggleSource, HuggingFaceSource]
 
 # Transforms and augmentations
 
+class Resize(BaseModel):
+    type: Literal["resize"]
+    width: int
+    height: int
+
 class Crop(BaseModel):
     type: Literal["random_crop"]
     width: int
@@ -52,7 +57,7 @@ class ColorJitter(BaseModel):
     saturation: float = 0.2
     hue: float = 0.2
 
-Transform = Union[Crop, HorizontalFlip, VerticalFlip, RandomRotate90, ShiftScaleRotate, ColorJitter]
+Transform = Union[Resize, Crop, HorizontalFlip, VerticalFlip, RandomRotate90, ShiftScaleRotate, ColorJitter]
 
 TRANSFORM_TYPE_MAP = {
     "RandomCrop": "random_crop",
@@ -61,6 +66,7 @@ TRANSFORM_TYPE_MAP = {
     "RandomRotate90": "random_rotate_90",
     "ShiftScaleRotate": "shift_scale_rotate",
     "ColorJitter": "color_jitter",
+    "Resize":"resize"
 }
 
 class DatasetConfig(BaseConfigModel):

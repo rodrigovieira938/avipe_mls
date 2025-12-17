@@ -78,6 +78,7 @@ class SegmentationDataset(Dataset):
         return image.float(), mask
 
 TRANSFORM_ALBUMENTATIONS_MAP = {
+    "resize": lambda params: A.Resize(height=params.height, width=params.width),
     "random_crop": lambda params: A.RandomCrop(height=params.height, width=params.width),
     "horizontal_flip": lambda params: A.HorizontalFlip(p=params.p),
     "vertical_flip": lambda params: A.VerticalFlip(p=params.p),
