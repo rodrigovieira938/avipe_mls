@@ -6,7 +6,7 @@ class ModelWrapper(torch.nn.Module):
     def __init__(self, config:FullConfig,model_index:int, model: torch.nn.Module):
         super(ModelWrapper, self).__init__()
         self.model = model
-        self.name = config.name + "-" + config.model[model_index].name
+        self.name = config.name + "-" + config.model[model_index].backend
         self.config = config
         self.model_index = model_index
         self.model_config = config.model[model_index]
@@ -22,7 +22,7 @@ class ModelWrapper(torch.nn.Module):
 
 def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
     model_config = config.model[model_index]
-    if model_config.name.lower() == "unet":
+    if model_config.backend.lower() == "unet":
         model = smp.Unet(
             encoder_name=model_config.backbone,
             in_channels=model_config.in_channels,
@@ -30,7 +30,7 @@ def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
             encoder_weights=None
         )
         return ModelWrapper(config,model_index, model)
-    elif model_config.name.lower() == "deeplabv3":
+    elif model_config.backend.lower() == "deeplabv3":
         model = smp.DeepLabV3(
             encoder_name=model_config.backbone,
             in_channels=model_config.in_channels,
@@ -38,7 +38,7 @@ def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
             encoder_weights=None
         )
         return ModelWrapper(config,model_index, model)
-    elif model_config.name.lower() == "deeplabv3+":
+    elif model_config.backend.lower() == "deeplabv3+":
         model = smp.DeepLabV3Plus(
             encoder_name=model_config.backbone,
             in_channels=model_config.in_channels,
@@ -46,7 +46,7 @@ def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
             encoder_weights=None
         )
         return ModelWrapper(config,model_index, model)
-    elif model_config.name.lower() == "fpn":
+    elif model_config.backend.lower() == "fpn":
         model = smp.FPN(
             encoder_name=model_config.backbone,
             in_channels=model_config.in_channels,
@@ -55,4 +55,4 @@ def load_model(config: FullConfig, model_index:int = 0) -> ModelWrapper:
         )
         return ModelWrapper(config,model_index, model)
     else:
-        raise ValueError(f"Unknown model name: {model_config.name}")
+        raise ValueError(f"Unknown model name: {model_config.backend}")

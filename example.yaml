@@ -20,6 +20,7 @@ dataset:
   #... Normal dataset parameters
 model:
   - name: "unet"
+    backend: "unet"
     backbone: "resnet34"
     input_size: [800, 800]
 training:

@@ -122,6 +122,7 @@ class ModelTrainingConfig(BaseConfigModel):
 
 class ModelConfig(BaseConfigModel):
     name: str = Field(min_length=1)
+    backend: str = Field(min_length=1)
     backbone: str = Field(min_length=1)
     in_channels: int = 3
     input_size: List[int] = Field(max_length=2, min_length=2)

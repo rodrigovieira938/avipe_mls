@@ -63,7 +63,7 @@ if __name__ == "__main__":
         for _model in models:
             found = False
             for idx, model_config in enumerate(full_config.model):
-                if model_config.name.lower() == _model.lower():
+                if model_config.backend.lower() == _model.lower():
                     found = True
                     break
             if not found:
