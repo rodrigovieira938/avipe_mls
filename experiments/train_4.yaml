@@ -1,0 +1,41 @@
+name: "grapevista_segmentation_4st_it"
+dataset:
+  source:
+    type: "huggingface"
+    repo: "links-ads/grapevista-dataset"
+  num_classes: 3
+  transforms:
+    - RandomCrop:
+        width: 800
+        height: 800
+    - HorizontalFlip:
+    - VerticalFlip:
+    - RandomRotate90:
+    - ColorJitter:
+  labels: ["bg", "leave", "grape"]
+  post_download_scripts: ["scripts/grapevista_prepare.py"]
+  images_path: "data/grapevista/vitigeoss/images"
+  masks_path: "data/grapevista/vitigeoss/annotations"
+model:
+  - name: "unet"
+    backend: "unet"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "deeplabv3+"
+    backend: "deeplabv3+"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "deeplabv3"
+    backend: "deeplabv3"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "FPN"
+    backend: "FPN"
+    backbone: "resnet34"
+    input_size: [800, 800]
+training:
+  lr: 0.001
+  epochs: 22
+  loss:
+    name: cross_entropy
+    class_weights: [0.1506, 0.3244, 2.5250]
