@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from pathlib import Path
 from tqdm import tqdm
 
-from .types import FullConfig, LossConfig, ComposeLossConfig, CrossEntropyConfig
+from .types import FullConfig, LossConfig, ComposeLossConfig, CrossEntropyConfig, DiceConfig
 from .model import load_model
 from .dataset import create_dataset
 from . import constants
@@ -22,6 +22,11 @@ def _build_loss(loss_cfg: LossConfig) -> loss.BaseLoss:
     if isinstance(loss_cfg, CrossEntropyConfig):
         return loss.CrossEntropyLoss(
             class_weights=loss_cfg.class_weights,
+            weight=loss_cfg.weight
+        )
+    if isinstance(loss_cfg, DiceConfig):
+        return loss.DiceLoss(
+            smooth=loss_cfg.smooth,
             weight=loss_cfg.weight
         )
     raise TypeError(f"Unsupported LossConfig type: {type(loss_cfg)}")

@@ -123,11 +123,14 @@ class BaseLossConfig(BaseConfigModel):
 class CrossEntropyConfig(BaseLossConfig):
     name: Literal["cross_entropy"]
     class_weights: Optional[list[float]] = None
+class DiceConfig(BaseLossConfig):
+    name: Literal["dice"]
+    smooth: float = 1.0
 class ComposeLossConfig(BaseLossConfig):
     name: Literal["compose"]
     losses: List["LossConfig"]
 
-LossConfig = Union[ComposeLossConfig, CrossEntropyConfig]
+LossConfig = Union[ComposeLossConfig, CrossEntropyConfig, DiceConfig]
 class TrainingConfig(BaseConfigModel):
     lr: float
     epochs: int
