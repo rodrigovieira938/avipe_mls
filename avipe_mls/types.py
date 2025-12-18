@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ValidationError, ConfigDict, Field, field_validator, ValidationInfo
 from typing import Optional, Union, List, Literal
+import datetime
 
 class BaseConfigModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -156,6 +157,7 @@ class FullConfig(BaseConfigModel):
     dataset: DatasetConfig
     model: List[ModelConfig]
     training: TrainingConfig
+    timestamp: datetime.datetime = Field(init=False, default=datetime.datetime(1,1,1))
 
     def get_training_for_model(self, model_index: int) -> TrainingConfig:
         """

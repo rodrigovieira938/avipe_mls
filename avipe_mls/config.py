@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-
+import datetime
 from .types import FullConfig
 
 def load(path: str | Path) -> FullConfig:
@@ -13,4 +13,6 @@ def load(path: str | Path) -> FullConfig:
     
     # Validate and parse with pydantic
     config = FullConfig(**raw)
+    # Last modified tiemstamp
+    config.timestamp = datetime.datetime.fromtimestamp(path.stat().st_mtime)
     return config

@@ -12,6 +12,7 @@ from .dataset import create_dataset
 from . import constants
 from . import utils
 from . import _loss as loss
+import datetime
 
 def _build_loss(loss_cfg: LossConfig) -> loss.BaseLoss:
     if isinstance(loss_cfg, ComposeLossConfig):
@@ -80,6 +81,15 @@ def train_model(config: FullConfig, root_path: str = constants.DEFAULT_ROOT_PATH
 
         epochs = training_config.epochs
         for epoch in range(epochs):
+            pth_save_path = Path(utils._get_pth_path(config, idx, epoch+1))
+            if(pth_save_path.exists()):
+                last_modified = datetime.datetime.fromtimestamp(pth_save_path.stat().st_mtime)
+                #if the file was created after the config assume it was trained by this config
+                if(last_modified > config.timestamp):
+                    model.load(str(pth_save_path))
+                    print(f"Loaded previouslly trained epoch {epoch+1}")
+                    continue
+
             training_loss = 0.0
             model.train()
             train_bar = tqdm(train_loader, desc=f"Training - Epoch {epoch+1}/{epochs}", unit="batch")
