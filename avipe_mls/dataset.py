@@ -18,8 +18,10 @@ class DatasetDownloader:
     def download(self):
         source_type = self.config.source.type
         path = ""
-        if source_type == "kaggle":
+        if source_type == "kagglehub-competition":
             path = self._download_kaggle()
+        elif source_type == "kagglehub-dataset":
+            path = self._download_kaggle_dataset()
         elif source_type == "huggingface":
             path = self._download_huggingface()
         else:
@@ -29,6 +31,9 @@ class DatasetDownloader:
     def _download_kaggle(self):
         return kagglehub.download_competition(self.config.source.competition) # type: ignore
 
+    def _download_kaggle_dataset(self):
+        return kagglehub.download_dataset(self.config.source.dataset) # type: ignore
+    
     def _download_huggingface(self):
         return huggingface_hub.snapshot_download(repo_id=self.config.source.repo, repo_type=self.config.source.repo_type) # type: ignore
     def _run_post_download_scripts(self, dataset_path: str):

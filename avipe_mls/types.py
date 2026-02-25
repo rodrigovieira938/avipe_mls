@@ -8,16 +8,19 @@ class BaseConfigModel(BaseModel):
 class DatasetSourceConfig(BaseConfigModel):
     type: str  # discriminator for pydantic
 
-class KaggleSource(DatasetSourceConfig):
-    type: Literal["kagglehub"]
+class KaggleSourceCompetion(DatasetSourceConfig):
+    type: Literal["kagglehub-competition"]
     competition: str = Field(min_length=1)
+class KaggleSourceDataset(DatasetSourceConfig):
+    type: Literal["kagglehub-dataset"]
+    dataset: str = Field(min_length=1)
 
 class HuggingFaceSource(DatasetSourceConfig):
     type: Literal["huggingface"]
     repo: str
     repo_type: Literal["dataset"] = "dataset"
 
-DatasetSourceUnion = Union[KaggleSource, HuggingFaceSource]
+DatasetSourceUnion = Union[KaggleSourceCompetion, KaggleSourceDataset, HuggingFaceSource]
 
 # Transforms and augmentations
 
