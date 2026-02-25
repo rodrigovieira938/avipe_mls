@@ -1,0 +1,48 @@
+name: "grapevista_segmentation_6th_it"
+dataset:
+  source:
+    type: "huggingface"
+    repo: "links-ads/grapevista-dataset"
+  num_classes: 3
+  transforms:
+    - RandomCrop:
+        width: 800
+        height: 800
+    - HorizontalFlip:
+    - RandomRotate90:
+    - ColorJitter:
+        brightness: 0.3
+        contrast: 0.3
+        saturation: 0.3
+        hue: 0.05
+        p: 0.7
+  labels: ["bg", "leave", "grape"]
+  post_download_scripts: ["scripts/grapevista_prepare.py"]
+  images_path: "data/grapevista/vitigeoss/images"
+  masks_path: "data/grapevista/vitigeoss/annotations"
+model:
+  - name: "unet"
+    backend: "unet"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "deeplabv3+"
+    backend: "deeplabv3+"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "deeplabv3"
+    backend: "deeplabv3"
+    backbone: "resnet34"
+    input_size: [800, 800]
+  - name: "FPN"
+    backend: "FPN"
+    backbone: "resnet34"
+    input_size: [800, 800]
+training:
+  lr: 0.001
+  epochs: 44 # sum of the 2 losses starts with ~2 loss so train for twice
+  loss:
+    name: compose
+    losses:
+      - name: cross_entropy
+        class_weights: [0.4642, 1.0000, 7.7824]
+      - name: dice
