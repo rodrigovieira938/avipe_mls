@@ -218,3 +218,6 @@ __marimo__/
 
 experiments-output/
 output/
+
+# Ignorar ficheiros de diagnóstico temporários
+debug_*.png

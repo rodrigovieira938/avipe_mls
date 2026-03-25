@@ -1,118 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sistema de Detecção de Saúde de Uvas</title>
-  <link rel="stylesheet" href="/static/styles.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VITIscan | Terminal</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
-
 <body>
-  <div class="page">
+    <div class="app-container">
+        <header class="main-header">
+            <span class="brand">VITI<span class="scan">scan</span></span>
+            <div class="status-chip"><div class="dot"></div> ONLINE</div>
+        </header>
 
-    <header class="header">
-      <div class="badge"><span class="check">✓</span></div>
-      <div class="header-text">
-        <h1>Sistema de Detecção de Saúde de Uvas</h1>
-        <p class="subtitle">Análise Inteligente com IA</p>
-        <p class="hint">
-          Carregue uma imagem de folhas de uva para detectar doenças e estado de saúde com tecnologia de inteligência artificial
-        </p>
-      </div>
-    </header>
+        <main class="content">
+            <div class="viewport">
+                <div id="uploadPlaceholder" class="placeholder">Aguardando Imagem...</div>
+                <img id="previewImg" class="preview-img" alt="Folha Analisada">
+            </div>
 
-    <section class="features">
-      <div class="feature orange">
-        <div class="icon">⚡</div>
-        <div>
-          <h3>Detecção Rápida</h3>
-          <p>Análise em segundos com tecnologia AI</p>
-        </div>
-      </div>
-      <div class="feature green">
-        <div class="icon">🛡️</div>
-        <div>
-          <h3>Alta Precisão</h3>
-          <p>Acurácia de 95% em detecção de doenças</p>
-        </div>
-      </div>
-      <div class="feature blue">
-        <div class="icon">📈</div>
-        <div>
-          <h3>Monitoramento</h3>
-          <p>Acompanhe a saúde ao longo do tempo</p>
-        </div>
-      </div>
-      <div class="feature purple">
-        <div class="icon">ℹ️</div>
-        <div>
-          <h3>Recomendações</h3>
-          <p>Receba orientações personalizadas</p>
-        </div>
-      </div>
-    </section>
+            <div class="controls">
+                <input id="fileInput" type="file" accept="image/*" hidden>
+                <button id="btnCamera" class="btn btn-main">Câmara</button>
+                <button id="btnChoose" class="btn btn-sub">Galeria</button>
+            </div>
 
-    <section class="uploader">
-      <div id="dropzone" class="dropzone">
-        <div class="dropzone-inner">
-          <p class="drop-title">Arraste e solte ou clique para carregar</p>
-          <p class="drop-sub">PNG, JPG até 10MB</p>
-
-          <div class="actions">
-            <input id="fileInput" type="file" accept="image/png,image/jpeg" hidden />
-            <button id="btnChoose" class="btn btn-green" type="button">⬆ Escolher Arquivo</button>
-            <button id="btnCamera" class="btn btn-blue" type="button">📷 Capturar Foto</button>
-          </div>
-
-          <div class="preview">
-            <img id="previewImg" alt="Pré-visualização" />
-            <div id="previewMeta" class="meta"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="tips">
-      <div class="tip tip-left">
-        <h4>💡 Iluminação Adequada</h4>
-        <p>Use imagens claras e bem iluminadas para melhores resultados</p>
-      </div>
-      <div class="tip tip-mid">
-        <h4>📸 Captura Próxima</h4>
-        <p>Capture as folhas de perto para detalhes precisos</p>
-      </div>
-      <div class="tip tip-right">
-        <h4>🔎 Fundo Simples</h4>
-        <p>Evite fundos muito complexos ou distrações</p>
-      </div>
-    </section>
-
-    <section class="stats">
-      <div class="stat">
-        <div class="stat-number" id="statAnalises">0</div>
-        <div class="stat-label">Análises Realizadas</div>
-      </div>
-      <div class="stat">
-        <div class="stat-number blue" id="statPrecisao">95%</div>
-        <div class="stat-label">Precisão</div>
-      </div>
-      <div class="stat">
-        <div class="stat-number" id="statTempo">2s</div>
-        <div class="stat-label">Tempo Médio</div>
-      </div>
-      <div class="stat">
-        <div class="stat-number orange" id="statDisponibilidade">24/7</div>
-        <div class="stat-label">Disponibilidade</div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <p>Este é um sistema de demonstração. Os resultados são simulados para fins de teste.</p>
-      <p class="footer-small">Desenvolvido com tecnologia de IA para agricultura inteligente 🌱</p>
-    </footer>
-
-  </div>
-
-  <script src="/static/app.js"></script>
+            <section id="resultPanel" class="results" hidden>
+                <div class="res-row">
+                    <div class="res-block">
+                        <label>Diagnóstico</label>
+                        <div id="resDisease" class="value">--</div>
+                    </div>
+                    <div class="res-block">
+                        <label>Confiança</label>
+                        <div id="resConfidence" class="value">--</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
 </body>
 </html>
